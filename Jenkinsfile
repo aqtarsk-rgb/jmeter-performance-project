@@ -12,7 +12,7 @@ pipeline {
 
         stage('Verify JMeter') {
             steps {
-                sh 'jmeter -v'
+                sh '/opt/homebrew/bin/jmeter -v'
             }
         }
     }
