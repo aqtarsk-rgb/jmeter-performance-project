@@ -1,0 +1,8 @@
+*.jtl
+*.log
+.DS_Store
+*.tmp
+.env
+*.pem
+*.key
+reports/html/
