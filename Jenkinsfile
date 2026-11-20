@@ -2,13 +2,13 @@
 pipeline {
     agent any
 
-   environment {
-    PATH = "/usr/local/bin:${env.PATH}"
+    environment {
+        PATH = "/usr/local/bin:${env.PATH}"
 
-    JMETER_IMAGE = 'alpine/jmeter:5.6.3'
-    TEST_PLAN = 'test-plans/DemoBlaze.jmx'
-    RESULTS_DIR = 'reports'
-}
+        JMETER_IMAGE = 'alpine/jmeter:5.6.3'
+        TEST_PLAN = 'test-plans/DemoBlaze.jmx'
+        RESULTS_DIR = 'reports'
+    }
 
     options {
         timestamps()
@@ -30,6 +30,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Checking Docker installation..."
+
                     docker --version
                     docker info
                 '''
@@ -41,6 +42,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Pulling JMeter Docker image..."
+
                     docker pull ${JMETER_IMAGE}
                 '''
             }
@@ -50,7 +52,10 @@ pipeline {
         stage('Prepare Reports') {
             steps {
                 sh '''
+                    echo "Preparing report directory..."
+
                     mkdir -p ${RESULTS_DIR}
+
                     rm -rf ${RESULTS_DIR}/html
                     rm -f ${RESULTS_DIR}/results.jtl
 
@@ -72,8 +77,6 @@ pipeline {
                         -n \
                         -t ${TEST_PLAN} \
                         -l ${RESULTS_DIR}/results.jtl \
-                        -e \
-                        -o ${RESULTS_DIR}/html \
                         -Jjmeter.save.saveservice.print_field_names=true
 
                     echo "JMeter execution completed"
@@ -87,28 +90,75 @@ pipeline {
                 sh '''
                     echo "Validating JMeter results..."
 
+                    // Check whether JTL file exists
                     if [ ! -s ${RESULTS_DIR}/results.jtl ]; then
                         echo "ERROR: JTL results file is missing or empty"
                         exit 1
                     fi
 
-                    echo "JTL results generated successfully"
+                    echo "JTL results file found"
 
-                    awk -F, '
-                        NR > 1 && $8 == "false" {
-                            failures++
+                    // Count total executed samples
+                    TOTAL_SAMPLES=$(awk -F, '
+                        NR > 1 {
+                            count++
                         }
                         END {
-                            printf "Failed samples: %d\\n", failures
-                            if (failures > 0) exit 1
+                            print count+0
                         }
-                    ' ${RESULTS_DIR}/results.jtl
+                    ' ${RESULTS_DIR}/results.jtl)
+
+                    echo "Total samples: $TOTAL_SAMPLES"
+
+                    // Fail if zero requests were executed
+                    if [ "$TOTAL_SAMPLES" -eq 0 ]; then
+                        echo "ERROR: JMeter executed zero requests"
+                        exit 1
+                    fi
+
+                    // Count failed samples
+                    FAILURES=$(awk -F, '
+                        NR > 1 && $8 == "false" {
+                            count++
+                        }
+                        END {
+                            print count+0
+                        }
+                    ' ${RESULTS_DIR}/results.jtl)
+
+                    echo "Failed samples: $FAILURES"
+
+                    // Fail if any requests failed
+                    if [ "$FAILURES" -gt 0 ]; then
+                        echo "ERROR: Performance test failures detected"
+                        exit 1
+                    fi
+
+                    echo "JMeter results validated successfully"
+                '''
+            }
+        }
+
+        // 7. Generate HTML performance dashboard
+        stage('Generate HTML Report') {
+            steps {
+                sh '''
+                    echo "Generating JMeter HTML dashboard..."
+
+                    docker run --rm \
+                        -v "$WORKSPACE:/work" \
+                        -w /work \
+                        ${JMETER_IMAGE} \
+                        -g ${RESULTS_DIR}/results.jtl \
+                        -o ${RESULTS_DIR}/html
+
+                    echo "HTML dashboard generated successfully"
                 '''
             }
         }
     }
 
-    // 7. Archive reports in Jenkins
+    // 8. Archive reports in Jenkins
     post {
         always {
             echo 'Archiving JMeter performance reports...'
@@ -121,10 +171,12 @@ pipeline {
 
         success {
             echo 'JMeter performance test PASSED'
+            echo 'JTL results and HTML dashboard generated successfully'
         }
 
         failure {
             echo 'JMeter performance test FAILED'
+            echo 'Please check the Jenkins console output'
         }
 
         cleanup {
