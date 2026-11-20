@@ -4,7 +4,6 @@ pipeline {
 
     environment {
         PATH = "/usr/local/bin:${env.PATH}"
-
         JMETER_IMAGE = 'alpine/jmeter:5.6.3'
         RESULTS_DIR = 'reports'
     }
@@ -24,7 +23,7 @@ pipeline {
             }
         }
 
-        // 2. Verify Docker installation
+        // 2. Verify Docker
         stage('Verify Docker') {
             steps {
                 sh '''
@@ -35,7 +34,7 @@ pipeline {
             }
         }
 
-        // 3. Pull JMeter Docker image
+        // 3. Pull JMeter image
         stage('Prepare JMeter Environment') {
             steps {
                 sh '''
@@ -45,124 +44,102 @@ pipeline {
             }
         }
 
-        // 4. Configure multiple JMX files
+        // 4. Prepare reports
         stage('Prepare Reports') {
             steps {
                 sh '''
-                    echo "Preparing report directories..."
-
+                    echo "Preparing reports directory..."
                     rm -rf "${RESULTS_DIR}"
                     mkdir -p "${RESULTS_DIR}"
-
-                    echo "Report directory prepared"
                 '''
             }
         }
 
-        // 5. Execute all JMX files sequentially
-        stage('Run Multiple JMeter Tests') {
+        // 5. Execute, validate and report all JMX files
+        stage('Run JMeter Tests') {
             steps {
                 script {
 
-                    // Add or remove JMX files here
-                    def testPlans = [
-                        'test-plans/DemoBlaze.jmx',
-                        'test-plans/Demoblaze_LoadTest_2.jmx'
+                    // =====================================
+                    // ADD OR REMOVE JMX FILES HERE ONLY
+                    // =====================================
 
-                        // Add more test plans:
+                    def testPlans = [
+                        'test-plans/Demo1.jmx'
+
+                        // To run multiple JMX files, add:
+                        // 'test-plans/Demoblaze_LoadTest_2.jmx',
                         // 'test-plans/LoadTest.jmx',
-                        // 'test-plans/CorrelationTest.jmx',
-                        // 'test-plans/RecordingTest.jmx'
+                        // 'test-plans/StressTest.jmx'
                     ]
 
                     def failedTests = []
+
+                    echo "Total JMX test plans: ${testPlans.size()}"
 
                     for (plan in testPlans) {
 
                         def testName = plan.tokenize('/').last()
                             .replaceAll(/\.jmx$/, '')
 
-                        echo "===================================="
-                        echo "Starting JMeter test: ${plan}"
-                        echo "===================================="
+                        def jtlPath =
+                            "${env.RESULTS_DIR}/${testName}/results.jtl"
 
-                        def jtlPath = "${env.RESULTS_DIR}/${testName}/results.jtl"
+                        def htmlPath =
+                            "${env.RESULTS_DIR}/${testName}/html"
 
-                        sh "mkdir -p '${env.RESULTS_DIR}/${testName}'"
+                        echo "======================================"
+                        echo "Starting test: ${plan}"
+                        echo "======================================"
 
-                        // Verify that the JMX file exists
                         if (!fileExists(plan)) {
                             echo "ERROR: JMX file not found: ${plan}"
                             failedTests.add(plan)
                             continue
                         }
 
-                        // Execute JMeter test
+                        sh "mkdir -p '${env.RESULTS_DIR}/${testName}'"
+
+                        // Execute JMeter
                         int executionStatus = sh(
-                            script: """
+                            script: '''
                                 docker run --rm \
-                                    -v "\$WORKSPACE:/work" \
+                                    -v "$WORKSPACE:/work" \
                                     -w /work \
-                                    "\$JMETER_IMAGE" \
+                                    "$JMETER_IMAGE" \
                                     -n \
-                                    -t "${plan}" \
-                                    -l "${jtlPath}" \
+                                    -t "$TEST_PLAN" \
+                                    -l "$JTL_PATH" \
                                     -Jjmeter.save.saveservice.print_field_names=true
-                            """,
-                            returnStatus: true
+                            ''',
+                            returnStatus: true,
+                            environment: [
+                                "TEST_PLAN=${plan}",
+                                "JTL_PATH=${jtlPath}"
+                            ]
                         )
 
                         if (executionStatus != 0) {
                             echo "ERROR: JMeter execution failed: ${plan}"
                             failedTests.add(plan)
-                        } else {
-                            echo "JMeter execution completed: ${plan}"
+                            continue
                         }
-                    }
-                }
-            }
-        }
 
-        // 6. Validate results and generate HTML reports
-        stage('Validate Results and Generate Reports') {
-            steps {
-                script {
+                        echo "JMeter execution completed: ${plan}"
 
-                    def testPlans = [
-                        'test-plans/Demo1.jmx',
-                        //'test-plans/Demoblaze_LoadTest_2.jmx'
-
-                        // Add more test plans:
-                        // 'test-plans/LoadTest.jmx',
-                        // 'test-plans/CorrelationTest.jmx',
-                        // 'test-plans/RecordingTest.jmx'
-                    ] // Keep this list identical to the execution list
-                    
-
-                    def failedTests = []
-
-                    for (plan in testPlans) {
-
-                        def testName = plan.tokenize('/').last()
-                            .replaceAll(/\.jmx$/, '')
-
-                        def jtlPath = "${env.RESULTS_DIR}/${testName}/results.jtl"
-                        def htmlPath = "${env.RESULTS_DIR}/${testName}/html"
-
-                        echo "Validating results for ${testName}"
-
+                        // Check JTL file
                         if (!fileExists(jtlPath) ||
                             sh(
                                 script: "test -s '${jtlPath}'",
                                 returnStatus: true
                             ) != 0) {
 
-                            echo "ERROR: Missing or empty JTL file: ${jtlPath}"
+                            echo "ERROR: JTL file missing or empty: ${jtlPath}"
                             failedTests.add(plan)
                             continue
                         }
 
-                        // Count samples and failures
+                        // Count total samples
                         def totalSamples = sh(
                             script: """
                                 awk -F, 'NR > 1 { count++ }
@@ -171,20 +148,21 @@ pipeline {
                             returnStdout: true
                         ).trim().toInteger()
 
+                        // Count failed samples
                         def failures = sh(
                             script: """
-                                awk -F, 'NR > 1 && \$8 == "false" { count++ }
+                                awk -F, 'NR > 1 && \\$8 == "false" { count++ }
                                 END { print count+0 }' '${jtlPath}'
                             """,
                             returnStdout: true
                         ).trim().toInteger()
 
-                        echo "Test: ${testName}"
+                        echo "Test name: ${testName}"
                         echo "Total samples: ${totalSamples}"
                         echo "Failed samples: ${failures}"
 
                         if (totalSamples == 0) {
-                            echo "ERROR: No samples executed"
+                            echo "ERROR: Zero samples executed"
                             failedTests.add(plan)
                             continue
                         }
@@ -196,29 +174,39 @@ pipeline {
 
                         // Generate HTML dashboard
                         int reportStatus = sh(
-                            script: """
+                            script: '''
                                 docker run --rm \
-                                    -v "\$WORKSPACE:/work" \
+                                    -v "$WORKSPACE:/work" \
                                     -w /work \
-                                    "\$JMETER_IMAGE" \
-                                    -g "${jtlPath}" \
-                                    -o "${htmlPath}"
-                            """,
-                            returnStatus: true
+                                    "$JMETER_IMAGE" \
+                                    -g "$JTL_PATH" \
+                                    -o "$HTML_PATH"
+                            ''',
+                            returnStatus: true,
+                            environment: [
+                                "JTL_PATH=${jtlPath}",
+                                "HTML_PATH=${htmlPath}"
+                            ]
                         )
 
                         if (reportStatus != 0) {
-                            echo "ERROR: HTML report generation failed for ${testName}"
+                            echo "ERROR: HTML report generation failed"
                             failedTests.add("${plan} (HTML report)")
                         } else {
                             echo "HTML report generated: ${htmlPath}/index.html"
                         }
+
+                        echo "Completed test: ${plan}"
                     }
 
-                    // Final validation
+                    // Final pipeline status
+                    echo "======================================"
+                    echo "ALL JMX EXECUTIONS COMPLETED"
+                    echo "======================================"
+
                     if (failedTests) {
                         echo "Failed tests: ${failedTests.join(', ')}"
-                        error("One or more JMeter tests or reports failed.")
+                        error("One or more JMeter tests failed.")
                     }
 
                     echo "All JMeter tests passed validation."
@@ -227,11 +215,11 @@ pipeline {
         }
     }
 
-    // 7. Archive reports
+    // 6. Archive reports
     post {
 
         always {
-            echo 'Archiving JMeter performance reports...'
+            echo 'Archiving JMeter reports...'
 
             archiveArtifacts(
                 artifacts: 'reports/**',
@@ -241,12 +229,12 @@ pipeline {
 
         success {
             echo 'All JMeter performance tests PASSED.'
-            echo 'All JTL results and HTML dashboards generated.'
+            echo 'JTL files and HTML dashboards generated.'
         }
 
         failure {
-            echo 'One or more JMeter performance tests FAILED.'
-            echo 'Please check the Jenkins Console Output.'
+            echo 'One or more JMeter tests FAILED.'
+            echo 'Check Jenkins Console Output.'
         }
 
         cleanup {
