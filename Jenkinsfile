@@ -137,7 +137,7 @@ pipeline {
                         // 'test-plans/CorrelationTest.jmx',
                         // 'test-plans/RecordingTest.jmx'
                     ] // Keep this list identical to the execution list
-                    ]
+                    
 
                     def failedTests = []
 
