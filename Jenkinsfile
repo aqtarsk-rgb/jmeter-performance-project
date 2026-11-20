@@ -4,7 +4,7 @@ pipeline {
 
     environment {
         PATH = "/usr/local/bin:${env.PATH}"
-        JMETER_IMAGE = 'alpine/jmeter:5.6.3'
+        JMETER_IMAGE = 'aqtar-jmeter:5.6.3'
         RESULTS_DIR = 'reports'
     }
 
@@ -29,8 +29,8 @@ pipeline {
         stage('Prepare JMeter Environment') {
             steps {
                 sh '''
-                    echo "Pulling JMeter Docker image..."
-                    docker pull "$JMETER_IMAGE"
+                    echo "Building custom JMeter image..."
+                    docker build -t "$JMETER_IMAGE" .
                 '''
             }
         }
