@@ -70,11 +70,13 @@ pipeline {
                     for (int i = 0; i < testPlans.size(); i++) {
 
                         def plan = testPlans[i]
+
                         def testName = plan.tokenize('/').last()
                                               .replace('.jmx', '')
 
                         def jtlPath = "${RESULTS_DIR}/${testName}.jtl"
                         def htmlPath = "${RESULTS_DIR}/${testName}-html"
+                        def outputCsv = "${RESULTS_DIR}/${testName}_data.csv"
 
                         echo "========================================"
                         echo "Running test plan: ${plan}"
@@ -85,11 +87,13 @@ pipeline {
                         }
 
                         // Execute JMeter test
+
                         int executionStatus = 0
 
                         withEnv([
                             "TEST_PLAN=${plan}",
-                            "JTL_PATH=${jtlPath}"
+                            "JTL_PATH=${jtlPath}",
+                            "OUT_FILE=${outputCsv}"
                         ]) {
                             executionStatus = sh(
                                 script: '''
@@ -100,7 +104,8 @@ pipeline {
                                         -n \
                                         -t "$TEST_PLAN" \
                                         -l "$JTL_PATH" \
-                                        -Jjmeter.save.saveservice.print_field_names=true
+                                        -Jjmeter.save.saveservice.print_field_names=true \
+                                        -Jout_file="$OUT_FILE"
                                 ''',
                                 returnStatus: true
                             )
@@ -113,6 +118,7 @@ pipeline {
                         }
 
                         // Validate JTL results
+
                         if (!fileExists(jtlPath)) {
                             echo "JTL result file missing: ${jtlPath}"
                             failedPlans.add(plan)
@@ -126,8 +132,9 @@ pipeline {
 
                             totalSamples = sh(
                                 script: '''
-                                    awk 'END { print (NR > 0 ? NR - 1 : 0) }' \
-                                        "$JTL_PATH"
+                                    awk 'END {
+                                        print (NR > 0 ? NR - 1 : 0)
+                                    }' "$JTL_PATH"
                                 ''',
                                 returnStdout: true
                             ).trim().toInteger()
@@ -143,11 +150,15 @@ pipeline {
                                             }
                                             next
                                         }
+
                                         successColumn > 0 &&
                                         $successColumn == "false" {
                                             count++
                                         }
-                                        END { print count+0 }
+
+                                        END {
+                                            print count+0
+                                        }
                                     ' "$JTL_PATH"
                                 ''',
                                 returnStdout: true
@@ -159,6 +170,7 @@ pipeline {
                         echo "Failed samples: ${failedSamples}"
 
                         // Generate HTML dashboard
+
                         int reportStatus = 0
 
                         withEnv([
@@ -190,9 +202,14 @@ pipeline {
                         } else {
                             echo "Test plan passed: ${plan}"
                         }
+
+                        echo "CSV output: ${outputCsv}"
+                        echo "JTL output: ${jtlPath}"
+                        echo "HTML report: ${htmlPath}"
                     }
 
                     // Final pipeline validation
+
                     echo "========================================"
                     echo "FINAL TEST SUMMARY"
                     echo "========================================"
@@ -201,6 +218,7 @@ pipeline {
                         echo "All JMeter test plans completed successfully."
                     } else {
                         echo "Failed test plans:"
+
                         failedPlans.each { plan ->
                             echo " - ${plan}"
                         }
