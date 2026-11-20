@@ -3,7 +3,7 @@ pipeline {
     agent any
 
    environment {
-    PATH+DOCKER = '/usr/local/bin'
+    PATH = "/usr/local/bin:${env.PATH}"
 
     JMETER_IMAGE = 'justb4/jmeter:5.6.3'
     TEST_PLAN = 'test-plans/DemoBlaze.jmx'
