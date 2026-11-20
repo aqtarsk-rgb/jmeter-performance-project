@@ -129,8 +129,8 @@ pipeline {
                 script {
 
                     def testPlans = [
-                        'test-plans/DemoBlaze.jmx',
-                        'test-plans/Demoblaze_LoadTest_2.jmx'
+                        'test-plans/Demo1.jmx',
+                        //'test-plans/Demoblaze_LoadTest_2.jmx'
 
                         // Keep this list identical to the execution list
                     ]
