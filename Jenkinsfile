@@ -151,11 +151,12 @@ pipeline {
                         // Count failed samples
                         def failures = sh(
                             script: """
-                                awk -F, 'NR > 1 && \\$8 == "false" { count++ }
+                                awk -F, 'NR > 1 && \$8 == "false" { count++ }
                                 END { print count+0 }' '${jtlPath}'
                             """,
                             returnStdout: true
                         ).trim().toInteger()
+
 
                         echo "Test name: ${testName}"
                         echo "Total samples: ${totalSamples}"
