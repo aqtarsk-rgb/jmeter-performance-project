@@ -132,7 +132,11 @@ pipeline {
                         'test-plans/Demo1.jmx',
                         //'test-plans/Demoblaze_LoadTest_2.jmx'
 
-                        // Keep this list identical to the execution list
+                        // Add more test plans:
+                        // 'test-plans/LoadTest.jmx',
+                        // 'test-plans/CorrelationTest.jmx',
+                        // 'test-plans/RecordingTest.jmx'
+                    ] // Keep this list identical to the execution list
                     ]
 
                     def failedTests = []
