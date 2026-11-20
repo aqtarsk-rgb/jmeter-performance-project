@@ -86,59 +86,58 @@ pipeline {
 
         // 6. Validate test results
         stage('Validate Test Results') {
-            steps {
-                sh '''
-                    echo "Validating JMeter results..."
+    steps {
+        sh '''
+            echo "Validating JMeter results..."
 
-                    // Check whether JTL file exists
-                    if [ ! -s ${RESULTS_DIR}/results.jtl ]; then
-                        echo "ERROR: JTL results file is missing or empty"
-                        exit 1
-                    fi
+            # Check whether JTL file exists
+            if [ ! -s ${RESULTS_DIR}/results.jtl ]; then
+                echo "ERROR: JTL results file is missing or empty"
+                exit 1
+            fi
 
-                    echo "JTL results file found"
+            echo "JTL results file found"
 
-                    // Count total executed samples
-                    TOTAL_SAMPLES=$(awk -F, '
-                        NR > 1 {
-                            count++
-                        }
-                        END {
-                            print count+0
-                        }
-                    ' ${RESULTS_DIR}/results.jtl)
+            # Count total executed samples
+            TOTAL_SAMPLES=$(awk -F, '
+                NR > 1 {
+                    count++
+                }
+                END {
+                    print count+0
+                }
+            ' ${RESULTS_DIR}/results.jtl)
 
-                    echo "Total samples: $TOTAL_SAMPLES"
+            echo "Total samples: $TOTAL_SAMPLES"
 
-                    // Fail if zero requests were executed
-                    if [ "$TOTAL_SAMPLES" -eq 0 ]; then
-                        echo "ERROR: JMeter executed zero requests"
-                        exit 1
-                    fi
+            # Fail if zero requests were executed
+            if [ "$TOTAL_SAMPLES" -eq 0 ]; then
+                echo "ERROR: JMeter executed zero requests"
+                exit 1
+            fi
 
-                    // Count failed samples
-                    FAILURES=$(awk -F, '
-                        NR > 1 && $8 == "false" {
-                            count++
-                        }
-                        END {
-                            print count+0
-                        }
-                    ' ${RESULTS_DIR}/results.jtl)
+            # Count failed samples
+            FAILURES=$(awk -F, '
+                NR > 1 && $8 == "false" {
+                    count++
+                }
+                END {
+                    print count+0
+                }
+            ' ${RESULTS_DIR}/results.jtl)
 
-                    echo "Failed samples: $FAILURES"
+            echo "Failed samples: $FAILURES"
 
-                    // Fail if any requests failed
-                    if [ "$FAILURES" -gt 0 ]; then
-                        echo "ERROR: Performance test failures detected"
-                        exit 1
-                    fi
+            # Fail if requests failed
+            if [ "$FAILURES" -gt 0 ]; then
+                echo "ERROR: Performance test failures detected"
+                exit 1
+            fi
 
-                    echo "JMeter results validated successfully"
-                '''
-            }
-        }
-
+            echo "JMeter results validated successfully"
+        '''
+    }
+}
         // 7. Generate HTML performance dashboard
         stage('Generate HTML Report') {
             steps {
