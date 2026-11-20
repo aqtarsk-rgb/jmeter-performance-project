@@ -6,7 +6,7 @@ pipeline {
         PATH = "/usr/local/bin:${env.PATH}"
 
         JMETER_IMAGE = 'alpine/jmeter:5.6.3'
-        TEST_PLAN = 'test-plans/DemoBlaze.jmx'
+        TEST_PLAN = 'test-plans/Demoblaze_LoadTest_2.jmx'
         RESULTS_DIR = 'reports'
     }
 
