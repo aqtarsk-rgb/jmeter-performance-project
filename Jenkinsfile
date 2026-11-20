@@ -2,11 +2,13 @@
 pipeline {
     agent any
 
-    environment {
-        JMETER_IMAGE = 'justb4/jmeter:5.6.3'
-        TEST_PLAN = 'test-plans/DemoBlaze.jmx'
-        RESULTS_DIR = 'reports'
-    }
+   environment {
+    PATH+DOCKER = '/usr/local/bin'
+
+    JMETER_IMAGE = 'justb4/jmeter:5.6.3'
+    TEST_PLAN = 'test-plans/DemoBlaze.jmx'
+    RESULTS_DIR = 'reports'
+}
 
     options {
         timestamps()
