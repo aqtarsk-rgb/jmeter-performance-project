@@ -52,7 +52,7 @@ pipeline {
                     // All test plans run sequentially.
 
                     def testPlans = [
-                        'test-plans/Demo1.jmx'
+                        'test-plans/02_Login.jmx'
 
                         // Add more plans like this:
                         // 'test-plans/DemoBlaze.jmx',
