@@ -11,7 +11,7 @@
         <stringProp name="maximumValue">99999</stringProp>
         <stringProp name="minimumValue">10000</stringProp>
         <stringProp name="outputFormat"></stringProp>
-        <boolProp name="perThread">false</boolProp>
+        <boolProp name="perThread">false</boolProp
         <stringProp name="randomSeed"></stringProp>
         <stringProp name="variableName">Num</stringProp>
       </RandomVariableConfig>
@@ -41,7 +41,7 @@
         <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Once Only Controller"/>
         <hashTree>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="01_Login">
-            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
+            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/login</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -86,7 +86,7 @@
         </IfController>
         <hashTree>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="02_Login">
-            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
+            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/login</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -141,7 +141,7 @@
           </UniformRandomTimer>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="02_ItemView" enabled="true">
-            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
+            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/items?page=${Pagenum}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -185,7 +185,7 @@
           </UniformRandomTimer>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="03_Search" enabled="true">
-            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
+            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/search?q=term</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -229,7 +229,7 @@
           </UniformRandomTimer>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="04_Item">
-            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
+            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/items</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
