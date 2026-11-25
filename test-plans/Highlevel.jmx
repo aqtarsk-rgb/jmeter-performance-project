@@ -11,7 +11,7 @@
         <stringProp name="maximumValue">99999</stringProp>
         <stringProp name="minimumValue">10000</stringProp>
         <stringProp name="outputFormat"></stringProp>
-        <boolProp name="perThread">false</boolProp
+        <boolProp name="perThread">false</boolProp>
         <stringProp name="randomSeed"></stringProp>
         <stringProp name="variableName">Num</stringProp>
       </RandomVariableConfig>
