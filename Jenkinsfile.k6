@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         K6_IMAGE = 'grafana/k6:latest'
-        K6_SCRIPT = 'k6/scripts/smoke-test.js'
+        K6_SCRIPT = 'k6/scripts/highlevel_k6.js'
         RESULTS_DIR = 'k6/results'
     }
 
