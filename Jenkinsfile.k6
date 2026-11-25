@@ -1,0 +1,82 @@
+
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        timeout(time: 10, unit: 'MINUTES')
+    }
+
+    environment {
+        K6_IMAGE = 'grafana/k6:latest'
+        K6_SCRIPT = 'k6/scripts/smoke-test.js'
+        RESULTS_DIR = 'k6/results'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Verify Docker') {
+            steps {
+                sh '''
+                    docker --version
+                    docker info
+                '''
+            }
+        }
+
+        stage('Prepare Results Directory') {
+            steps {
+                sh '''
+                    mkdir -p "$RESULTS_DIR"
+                '''
+            }
+        }
+
+        stage('Pull k6 Docker Image') {
+            steps {
+                sh '''
+                    docker pull "$K6_IMAGE"
+                '''
+            }
+        }
+
+        stage('Run k6 Performance Test') {
+            steps {
+                sh '''
+                    docker run --rm \
+                      -v "$WORKSPACE:/work" \
+                      -w /work \
+                      "$K6_IMAGE" \
+                      run "$K6_SCRIPT"
+                '''
+            }
+        }
+
+        stage('Archive k6 Results') {
+            steps {
+                archiveArtifacts artifacts: 'k6/results/**',
+                                 allowEmptyArchive: true
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'k6 pipeline execution completed.'
+        }
+
+        success {
+            echo 'k6 performance test PASSED.'
+        }
+
+        failure {
+            echo 'k6 performance test FAILED. Check the console output and archived results.'
+        }
+    }
+}
