@@ -41,7 +41,7 @@
         <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Once Only Controller"/>
         <hashTree>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="01_Login">
-            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
+            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/login</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -88,7 +88,7 @@ vars.put(&apos;token_taken&apos;, String.valueOf(System.currentTimeMillis()))</s
         </IfController>
         <hashTree>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="02_Login">
-            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
+            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/login</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -113,14 +113,14 @@ vars.put(&apos;token_taken&apos;, String.valueOf(System.currentTimeMillis()))</s
               <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
             </JSONPostProcessor>
             <hashTree/>
-            <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="true">
+            <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor">
               <stringProp name="scriptLanguage">groovy</stringProp>
               <stringProp name="parameters"></stringProp>
               <stringProp name="filename"></stringProp>
               <stringProp name="cacheKey">true</stringProp>
               <stringProp name="script">vars.put(
 	&apos;token_taken&apos;,
-	String.ValueOf(System.currentTimeMillis())
+	String.valueOf(System.currentTimeMillis())
 )</stringProp>
             </JSR223PostProcessor>
             <hashTree/>
@@ -143,7 +143,7 @@ vars.put(&apos;token_taken&apos;, String.valueOf(System.currentTimeMillis()))</s
           </UniformRandomTimer>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="02_ItemView" enabled="true">
-            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
+            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/items?page=${Pagenum}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -187,7 +187,7 @@ vars.put(&apos;token_taken&apos;, String.valueOf(System.currentTimeMillis()))</s
           </UniformRandomTimer>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="03_Search" enabled="true">
-            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
+            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/search?q=term</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -231,7 +231,7 @@ vars.put(&apos;token_taken&apos;, String.valueOf(System.currentTimeMillis()))</s
           </UniformRandomTimer>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="04_Item">
-            <stringProp name="HTTPSampler.domain">host.docker.internal</stringProp>
+            <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
             <stringProp name="HTTPSampler.port">8080</stringProp>
             <stringProp name="HTTPSampler.path">/items</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -249,7 +249,7 @@ vars.put(&apos;token_taken&apos;, String.valueOf(System.currentTimeMillis()))</s
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">Authorization</stringProp>
