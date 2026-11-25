@@ -71,16 +71,18 @@
               <stringProp name="parameters"></stringProp>
               <stringProp name="filename"></stringProp>
               <stringProp name="cacheKey">true</stringProp>
-              <stringProp name="script">vars.put(
-	&apos;token_taken&apos;,
-	String.ValueOf(System.currentTimeMillis())
-)</stringProp>
+              <stringProp name="script">
+vars.put(&apos;token_taken&apos;, String.valueOf(System.currentTimeMillis()))</stringProp>
             </JSR223PostProcessor>
             <hashTree/>
           </hashTree>
         </hashTree>
         <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
-          <stringProp name="IfController.condition">${__groovy((System.currentTimeMillis() - (vars.get(&apos;token_taken&apos;) as long)) &gt;= 80000)}</stringProp>
+          <stringProp name="IfController.condition">${__groovy(
+    (System.currentTimeMillis() -
+    (vars.get(&apos;token_taken&apos;) as long))
+    &gt;= (80 * 1000L)
+)}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
